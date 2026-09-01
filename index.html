@@ -82,12 +82,11 @@
     <div class="card hidden" id="connect-card">
       <h3>🔐 Connect Your Pollinations Account</h3>
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Unlock image-based solving and access to premium models.</p>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="api-key-input" placeholder="sk_…" autocomplete="off" maxlength="120">
-        <button class="btn btn-primary" onclick="connectKey()" id="connect-btn">Connect</button>
-      </div>
-      <p style="font-size:12px;color:var(--muted);margin-top:8px">
-        Get your key from <a href="https://enter.pollinations.ai" target="_blank">enter.pollinations.ai</a>
+      <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="goToSettings()">
+        Connect with Pollinations
+      </button>
+      <p style="font-size:12px;color:var(--muted);text-align:center">
+        Uses OAuth2 (PKCE) via <a href="https://enter.pollinations.ai" target="_blank">enter.pollinations.ai</a>
       </p>
     </div>
     <div class="card" id="question-card">
@@ -167,6 +166,10 @@ function isBYOPConnected() {
     return getBYOPKey() !== null;
 }
 
+function goToSettings() {
+    window.location.href = 'settings.html';
+}
+
 function getSelectedModel() {
     if (isBYOPConnected()) {
         return sessionStorage.getItem('selected_model') || 'openai';
@@ -186,64 +189,7 @@ function updateStatus() {
     }
 }
 
-// ─── BYOP Connection ─────────────────────────────────────────────────────
-
-async function connectKey() {
-    const keyInput = document.getElementById('api-key-input');
-    const key = keyInput.value.trim();
-    if (!key) { showToast('Please enter your API key', 'error'); return; }
-
-    const btn = document.getElementById('connect-btn');
-    btn.disabled = true;
-    btn.textContent = 'Connecting…';
-
-    try {
-        // Verify key by fetching models
-        const resp = await fetch(GEN_MODELS_ENDPOINT, {
-            headers: { 'Authorization': `Bearer ${key}` }
-        });
-
-        if (resp.ok) {
-            const data = await resp.json();
-            const models = data.data || [];
-
-            sessionStorage.setItem('pollinations_key', key);
-            // Auto-select first model (or free model if available)
-            let defaultModel = 'openai';
-            for (let m of models) {
-                if (m.id && m.id.toLowerCase().includes('free')) {
-                    defaultModel = m.id;
-                    break;
-                }
-            }
-            if (models.length > 0 && models[0].id) {
-                defaultModel = models[0].id;
-            }
-            sessionStorage.setItem('selected_model', defaultModel);
-            sessionStorage.setItem('selected_model_id', defaultModel);
-
-            showToast('Connected successfully!', 'success');
-            document.getElementById('connect-card').classList.add('hidden');
-            updateStatus();
-        } else {
-            showToast('Invalid API key. Please check and try again.', 'error');
-        }
-    } catch (err) {
-        showToast('Connection failed: ' + err.message, 'error');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Connect';
-    }
-}
-
-function disconnectKey() {
-    sessionStorage.removeItem('pollinations_key');
-    sessionStorage.removeItem('selected_model');
-    showToast('Disconnected', 'success');
-    updateStatus();
-}
-
-// ─── Model Selection ─────────────────────────────────────────────────────
+// ─── Init ──────────────────────────────────────────────────────────────────
 
 async function fetchModels() {
     const key = getBYOPKey();
@@ -459,9 +405,85 @@ function showToast(msg, type) {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// ─── Init ──────────────────────────────────────────────────────────────────
+// ─── App Key ───────────────────────────────────────────────────────────────
+const APP_KEY = "pk_rTuZ5SRUSxvDiGR0";
+const AUTH_BASE = "https://enter.pollinations.ai";
+const REDIRECT_URI = window.location.origin + "/ai-homework-solver/";
 
-document.addEventListener('DOMContentLoaded', function() {
+// ─── PKCE Helpers ──────────────────────────────────────────────────────────
+function generatePKCE() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+// ─── OAuth Callback Handler ─────────────────────────────────────────────────
+async function handleOAuthCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+
+    if (!code) return false;
+
+    const storedState = sessionStorage.getItem('oauth_state');
+    if (state && state !== storedState) {
+        console.error('OAuth state mismatch');
+        return false;
+    }
+
+    try {
+        const verifier = sessionStorage.getItem('pkce_verifier');
+        const params = new URLSearchParams();
+        params.set('grant_type', 'authorization_code');
+        params.set('code', code);
+        params.set('client_id', APP_KEY);
+        params.set('redirect_uri', REDIRECT_URI);
+        params.set('code_verifier', verifier);
+
+        const resp = await fetch(`${AUTH_BASE}/api/oauth/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+
+        if (!resp.ok) {
+            throw new Error(`Token exchange failed (${resp.status})`);
+        }
+
+        const data = await resp.json();
+        sessionStorage.setItem('pollinations_key', data.access_token);
+        sessionStorage.setItem('pollinations_key_type', 'oauth');
+        if (data.refresh_token) {
+            sessionStorage.setItem('pollinations_refresh_token', data.refresh_token);
+        }
+        sessionStorage.removeItem('pkce_verifier');
+        sessionStorage.removeItem('oauth_state');
+        window.history.replaceState({}, document.title, REDIRECT_URI);
+
+        return true;
+    } catch (err) {
+        console.error('OAuth callback error:', err);
+        return false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    // Handle OAuth callback if present in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('code')) {
+        const success = await handleOAuthCallback();
+        if (success) { showToast('Connected with Pollinations!', 'success'); }
+        else { showToast('OAuth connection failed', 'error'); }
+        setTimeout(() => location.reload(), 1000);
+        return;
+    }
+
     updateStatus();
 
     // Enable solve button

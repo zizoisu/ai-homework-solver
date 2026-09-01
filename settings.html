@@ -30,12 +30,12 @@
     .btn-sm { padding: 6px 14px; font-size: 13px; }
     .btn-danger { background: var(--danger); color: #fff; }
     .btn-danger:hover { background: #ff293f; }
-    input, textarea, select { width: 100%; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.18s; }
-    input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-    input::placeholder, textarea::placeholder { color: var(--muted); }
+    input { width: 100%; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.18s; }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    input::placeholder { color: var(--muted); }
     label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--muted); }
     .model-list { display: flex; flex-direction: column; gap: 8px; }
-    .model-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.18s; }
+    .model-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.18; }
     .model-item:hover { border-color: var(--accent); background: var(--accent-dim); }
     .model-item.selected { border-color: var(--accent); }
     .model-item .model-name { font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 6px; }
@@ -55,6 +55,14 @@
     .toast.error { background: rgba(255,71,87,0.1); color: var(--danger); border-color: var(--danger); }
     @keyframes pop { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
     .hidden { display: none !important; }
+    .oauth-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: #00d4aa; color: #0a0e17; transition: all 0.18s; }
+    .oauth-btn:hover { background: #00c49a; }
+    .oauth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .oauth-btn img { width: 18px; height: 18px; }
+    .divider { text-align: center; margin: 14px 0; color: var(--muted); font-size: 13px; position: relative; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--border); }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
     @media (max-width: 600px) { .header h1 { font-size: 24px; } .container { padding: 16px; } }
   </style>
 </head>
@@ -77,24 +85,41 @@
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
         Unlock image-based solving, premium models, and higher rate limits.
       </p>
-      <div id="connected-view" class="hidden">
-        <div style="margin-bottom:14px">
-          <label>Connected Key</label>
-          <div class="token-display" id="token-display"></div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-danger" onclick="disconnectKey()">Disconnect</button>
-          <button class="btn" onclick="refreshModels()" id="refresh-btn">Refresh Models</button>
-        </div>
-      </div>
-      <div id="connect-view">
-        <div style="margin-bottom:14px">
-          <input type="text" id="api-key-input" placeholder="sk_… (from enter.pollinations.ai)" autocomplete="off" maxlength="120">
-        </div>
-        <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="connectKey()" id="connect-btn">Connect</button>
-        <p style="font-size:12px;color:var(--muted);text-align:center">
-          Get your key at <a href="https://enter.pollinations.ai" target="_blank">enter.pollinations.ai</a>
+
+      <!-- OAuth Connect View -->
+      <div id="oauth-view">
+        <button class="oauth-btn" id="connect-oauth-btn" onclick="connectOAuth()">
+          <img src="data:image/svg+xml;base64,PHu5JLg==" alt="GitHub">
+          Connect with Pollinations
+        </button>
+        <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px">
+          Uses OAuth2 PKCE flow. No keys stored in the app.
         </p>
+      </div>
+
+      <div class="divider">or enter your key manually</div>
+
+      <!-- Manual Connect View -->
+      <div id="manual-view">
+        <div id="connected-view" class="hidden">
+          <div style="margin-bottom:14px">
+            <label>Connected Key</label>
+            <div class="token-display" id="token-display"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-danger" onclick="disconnectKey()">Disconnect</button>
+            <button class="btn" onclick="refreshModels()" id="refresh-btn">Refresh Models</button>
+          </div>
+        </div>
+        <div id="connect-view">
+          <div style="margin-bottom:14px">
+            <input type="text" id="api-key-input" placeholder="sk_… (from enter.pollinations.ai)" autocomplete="off" maxlength="120">
+          </div>
+          <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="connectKey()" id="connect-btn">Connect</button>
+          <p style="font-size:12px;color:var(--muted);text-align:center">
+            Get your key at <a href="https://enter.pollinations.ai" target="_blank">enter.pollinations.ai</a>
+          </p>
+        </div>
       </div>
     </div>
 
@@ -119,33 +144,146 @@
   </div>
 
 <script>
+// ─── Configuration ─────────────────────────────────────────────────────────
+const APP_KEY = "pk_rTuZ5SRUSxvDiGR0";  // ← Your Pollinations App Key
+const AUTH_BASE = "https://enter.pollinations.ai";
 const GEN_MODELS_ENDPOINT = "https://gen.pollinations.ai/v1/models";
-const TEXT_AUTH_ENDPOINT = "https://gen.pollinations.ai/v1/chat/completions";
+const TOKEN_ENDPOINT = `${AUTH_BASE}/api/oauth/token`;
+const REDIRECT_URI = window.location.origin + "/ai-homework-solver/";
 
+// ─── PKCE Helpers ──────────────────────────────────────────────────────────
+function generatePKCE() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const verifier = btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  return verifier;
+}
+
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+// ─── Auth State ─────────────────────────────────────────────────────────────
 function getBYOPKey() {
     return sessionStorage.getItem('pollinations_key') || null;
 }
-
 function getSelectedModel() {
     return sessionStorage.getItem('selected_model') || '';
 }
-
 function setSelectedModel(modelId) {
     sessionStorage.setItem('selected_model', modelId);
 }
+function clearAuth() {
+    sessionStorage.removeItem('pollinations_key');
+    sessionStorage.removeItem('pollinations_key_type');
+    sessionStorage.removeItem('pollinations_refresh_token');
+    sessionStorage.removeItem('selected_model');
+    sessionStorage.removeItem('pkce_verifier');
+}
+function getAuthType() {
+    return sessionStorage.getItem('pollinations_key_type') || 'oauth';
+}
 
-function updateStatus() {
-    const dot = document.getElementById('status-dot');
-    const text = document.getElementById('status-text');
-    if (getBYOPKey()) {
-        dot.className = 'status-dot free';
-        text.textContent = 'BYOP Connected';
-    } else {
-        dot.className = 'status-dot free';
-        text.textContent = 'Free Tier';
+// ─── OAuth2 PKCE Flow ───────────────────────────────────────────────────────
+async function connectOAuth() {
+    const btn = document.getElementById('connect-oauth-btn');
+    btn.disabled = true;
+    btn.textContent = 'Preparing authentication…';
+
+    try {
+        const verifier = generatePKCE();
+        const challenge = await generateCodeChallenge(verifier);
+        const state = btoa(Math.random().toString(36).substring(2));
+
+        // Store PKCE verifier and state in sessionStorage (cleared after use)
+        sessionStorage.setItem('pkce_verifier', verifier);
+        sessionStorage.setItem('oauth_state', state);
+
+        // Build authorization URL
+        const authUrl = new URL(`${AUTH_BASE}/authorize`);
+        authUrl.searchParams.set('response_type', 'code');
+        authUrl.searchParams.set('client_id', APP_KEY);
+        authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+        authUrl.searchParams.set('scope', 'profile usage');
+        authUrl.searchParams.set('state', state);
+        authUrl.searchParams.set('code_challenge', challenge);
+        authUrl.searchParams.set('code_challenge_method', 'S256');
+
+        // Redirect user to authorization endpoint
+        window.location.href = authUrl.toString();
+    } catch (err) {
+        showToast('Could not start OAuth flow: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<img src="data:image/svg+xml;base64,PHu5JLg==" alt="Poli"> Connect with Pollinations';
     }
 }
 
+async function handleOAuthCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+
+    if (!code) return false;
+
+    // Verify state
+    const storedState = sessionStorage.getItem('oauth_state');
+    if (state && state !== storedState) {
+        showToast('OAuth state mismatch — possible CSRF', 'error');
+        return false;
+    }
+
+    const btn = document.getElementById('connect-oauth-btn');
+    btn.disabled = true;
+    btn.textContent = 'Exchanging for API key…';
+
+    try {
+        const verifier = sessionStorage.getItem('pkce_verifier');
+        const params = new URLSearchParams();
+        params.set('grant_type', 'authorization_code');
+        params.set('code', code);
+        params.set('client_id', APP_KEY);
+        params.set('redirect_uri', REDIRECT_URI);
+        params.set('code_verifier', verifier);
+
+        const resp = await fetch(TOKEN_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+
+        if (!resp.ok) {
+            const errText = await resp.text();
+            throw new Error(`Token exchange failed (${resp.status}): ${errText.slice(0, 200)}`);
+        }
+
+        const data = await resp.json();
+        // Store the token in sessionStorage (secure: not in URL, not in localStorage)
+        sessionStorage.setItem('pollinations_key', data.access_token);
+        sessionStorage.setItem('pollinations_key_type', 'oauth');
+        if (data.refresh_token) {
+            sessionStorage.setItem('pollinations_refresh_token', data.refresh_token);
+        }
+
+        // Clean up PKCE state
+        sessionStorage.removeItem('pkce_verifier');
+        sessionStorage.removeItem('oauth_state');
+
+        // Clear the URL (remove query params)
+        window.history.replaceState({}, document.title, REDIRECT_URI);
+
+        showToast('Connected with Pollinations!', 'success');
+        setTimeout(() => location.reload(), 800);
+    } catch (err) {
+        showToast('Connection failed: ' + err.message, 'error');
+        btn.disabled = false;
+    }
+}
+
+// ─── Manual Key Connect ─────────────────────────────────────────────────────
 async function connectKey() {
     const key = document.getElementById('api-key-input').value.trim();
     if (!key) { showToast('Please enter your API key', 'error'); return; }
@@ -155,7 +293,6 @@ async function connectKey() {
     btn.textContent = 'Connecting…';
 
     try {
-        // Verify the key by fetching models
         const resp = await fetch(GEN_MODELS_ENDPOINT, {
             headers: { 'Authorization': `Bearer ${key}` }
         });
@@ -165,6 +302,7 @@ async function connectKey() {
             const models = data.data || [];
 
             sessionStorage.setItem('pollinations_key', key);
+            sessionStorage.setItem('pollinations_key_type', 'manual');
 
             // Select a default model (prefer 'openai' or first available)
             let defaultModel = 'openai';
@@ -188,12 +326,12 @@ async function connectKey() {
 }
 
 function disconnectKey() {
-    sessionStorage.removeItem('pollinations_key');
-    sessionStorage.removeItem('selected_model');
+    clearAuth();
     showToast('Disconnected', 'success');
     setTimeout(() => location.reload(), 800);
 }
 
+// ─── Model Selection ───────────────────────────────────────────────────────
 async function refreshModels() {
     const key = getBYOPKey();
     if (!key) { showToast('Please connect your BYOP key first', 'error'); return; }
@@ -218,7 +356,7 @@ async function refreshModels() {
             let html = '';
             models.forEach(m => {
                 const modelId = m.id || '';
-                const name = modelId.replace('-', ' ').replace(/^\w/, c => c.toUpperCase());
+                const name = modelId.replace(/-/g, ' ').replace(/^\\w/, c => c.toUpperCase());
                 const ownedBy = m.owned_by || 'Pollinations';
                 const vision = m.input_modalities && m.input_modalities.includes('image');
                 const isFree = modelId.includes('free') || modelId === 'gpt-oss-20b';
@@ -248,12 +386,25 @@ function selectModel(modelId) {
     const items = document.querySelectorAll('.model-item');
     items.forEach(item => {
         item.classList.remove('selected');
-        item.querySelector('.model-badge.active')?.remove();
+        const badge = item.querySelector('.model-badge.active');
+        if (badge) badge.remove();
     });
-    // Add active badge to selected
     const selected = document.querySelector(`.model-item[onclick="selectModel('${modelId}')"]`);
     if (selected) {
         selected.classList.add('selected');
+    }
+}
+
+// ─── Status ─────────────────────────────────────────────────────────────────
+function updateStatus() {
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    if (getBYOPKey()) {
+        dot.className = 'status-dot free';
+        text.textContent = 'BYOP Connected (' + (getAuthType() === 'oauth' ? 'OAuth' : 'Manual') + ')';
+    } else {
+        dot.className = 'status-dot free';
+        text.textContent = 'Free Tier';
     }
 }
 
@@ -266,6 +417,7 @@ function updateTokenDisplay() {
     }
 }
 
+// ─── Toast ─────────────────────────────────────────────────────────────────
 function showToast(msg, type) {
     document.querySelectorAll('.toast').forEach(t => t.remove());
     const toast = document.createElement('div');
@@ -275,8 +427,17 @@ function showToast(msg, type) {
     setTimeout(() => toast.remove(), 3000);
 }
 
+// ─── Init ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
-    updateStatus();
+    // Handle OAuth callback if present in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('code')) {
+        // Will handle after OAuth redirect
+        handleOAuthCallback();
+    } else {
+        updateStatus();
+    }
+
     if (getBYOPKey()) {
         updateTokenDisplay();
         refreshModels();

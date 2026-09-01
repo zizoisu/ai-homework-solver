@@ -1,6 +1,19 @@
 # AI Homework Solver
 
-Solve homework problems with AI — **free for text** (anonymous tier), advanced features with **BYOP** (Build Your Own Proxy) authentication.
+Solve homework problems with AI — **free for text** (anonymous tier), advanced features with **BYOP** (Bring Your Own Pollen) authentication.
+
+**Live Demo:** https://ai-homework-solver.up.railway.app/
+
+## Screenshots
+
+### Main Solver Interface
+![Main Interface](docs/screenshot-main.png)
+
+### Settings Dashboard
+![Settings Dashboard](docs/screenshot-settings.png)
+
+### Demo: Solving a Question
+![Demo](docs/demo-solved.png)
 
 ## Quick Start (Local)
 
@@ -46,7 +59,6 @@ POST /api/solve
   "success": true,
   "solution": "Paris.",
   "tier": "Free",
-  "model": "gpt-oss-20b",
   "used_byop": false
 }
 ```
@@ -58,17 +70,30 @@ POST /api/solve
 3. Copy your `sk_…` key
 4. Paste it in the **Settings** page → **Connect**
 
-## Deploying to GitHub Pages
+## Deployment
 
-> This app is a Flask backend. For static-only GitHub Pages, the free tier still works via direct browser fetch to `text.pollinations.ai`.
+### Deploy to Railway (Free)
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?templateDir=.&repo=https://github.com/zizoisu/ai-homework-solver)
+
+Or manual deploy:
 
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M master
-git remote add origin https://github.com/zizoisu/ai-homework-solver.git
-git push -u origin master
+# 1. Fork this repository
+# 2. Go to https://railway.app
+# 3. Create a new project and link your GitHub repo
+# 4. Set the following environment variable:
+#    SECRET_KEY=some-random-secret-key
+# 5. Deploy!
+```
+
+### Local Development
+
+```bash
+git clone https://github.com/zizoisu/ai-homework-solver.git
+cd ai-homework-solver
+pip install -r requirements.txt
+python app.py
 ```
 
 ## Architecture
@@ -79,4 +104,9 @@ Free tier (no key):
   
 BYOP tier (with key):
   Browser → /api/solve → gen.pollinations.ai/v1/chat/completions
+  Browser → /api/models → gen.pollinations.ai/v1/models
 ```
+
+## License
+
+MIT

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Homework Solver</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #0a0e17; --bg2: #111827; --card: #1a2230; --border: #2a3a4f;
+      --fg: #f0f4f8; --muted: #6b7a8c; --accent: #00d4aa;
+      --accent-dim: rgba(0, 212, 170, 0.15); --danger: #ff4757;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; }
+    .bg-pattern { position: fixed; inset: 0; background: radial-gradient(circle at 20% 80%, rgba(0,212,170,0.06) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(0,212,170,0.04) 0%, transparent 50%), radial-gradient(circle at 40% 40%, rgba(0,212,170,0.02) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+    .container { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 24px; }
+    .header { text-align: center; padding: 28px 0 16px; }
+    .header h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; }
+    .header p { color: var(--muted); margin-top: 6px; font-size: 14px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+    .card.compact { padding: 20px; }
+    h3 { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--fg); transition: all 0.18s; outline: none; }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: var(--accent); color: #0a0e17; font-weight: 600; }
+    .btn-primary:hover { background: #00c49a; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #ff293f; }
+    input, textarea, select { width: 100%; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.18s; }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+    label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--muted); }
+    .type-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .type-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.18s; }
+    .type-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .type-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+    .dropzone { border: 2px dashed var(--border); border-radius: 12px; padding: 28px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .dropzone:hover { border-color: var(--accent); background: var(--accent-dim); }
+    .dropzone.drag { border-color: var(--accent); }
+    .dropzone p { color: var(--muted); font-size: 14px; margin-bottom: 4px; }
+    .dropzone .sub { font-size: 12px; color: var(--muted); }
+    .dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .preview { margin-top: 14px; position: relative; }
+    .preview img { max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--border); }
+    .preview .remove { position: absolute; top: -10px; right: -10px; width: 24px; height: 24px; border-radius: 50%; background: var(--danger); color: #fff; border: none; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+    .answer-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-height: 120px; white-space: pre-wrap; word-wrap: break-word; font-size: 14px; line-height: 1.6; }
+    .answer-box.loading { text-align: center; color: var(--muted); }
+    .spinner { width: 22px; height: 22px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 999; animation: pop 0.3s ease; max-width: 380px; border: 1px solid var(--border); }
+    .toast.success { background: rgba(0,212,170,0.1); color: var(--accent); border-color: var(--accent); }
+    .toast.error { background: rgba(255,71,87,0.1); color: var(--danger); border-color: var(--danger); }
+    @keyframes pop { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    .status-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .status-dot.free { background: var(--accent); }
+    .status-dot.byop { background: var(--accent); }
+    .footer { text-align: center; padding: 24px; font-size: 12px; color: var(--muted); }
+    .hidden { display: none !important; }
+    @media (max-width: 600px) { .header h1 { font-size: 24px; } .type-row { flex-direction: column; } .container { padding: 16px; } }
+  </style>
+</head>
+<body>
+  <div class="bg-pattern"></div>
+  <div class="container">
+    <div class="header">
+      <h1>AI Homework Solver</h1>
+      <p>Solve homework problems with AI — free for text, advanced with BYOP</p>
+    </div>
+    <div class="status-row" id="status-row">
+      <span class="status-dot free" id="status-dot"></span>
+      <span id="status-text" style="font-size:13px">Free Tier — text only</span>
+      <a href="settings.html" style="margin-left:auto;font-size:13px">⚙ Settings</a>
+    </div>
+    <div class="card hidden" id="connect-card">
+      <h3>🔐 Connect Your Pollinations Account</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Unlock image-based solving and access to premium models.</p>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="api-key-input" placeholder="sk_…" autocomplete="off" maxlength="120">
+        <button class="btn btn-primary" onclick="connectKey()" id="connect-btn">Connect</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">
+        Get your key from <a href="https://enter.pollinations.ai" target="_blank">enter.pollinations.ai</a>
+      </p>
+    </div>
+    <div class="card" id="question-card">
+      <h3>📝 Ask Your Homework Question</h3>
+      <div style="margin-bottom:16px">
+        <label>Question Type</label>
+        <div class="type-row">
+          <button class="type-btn active" data-type="short_answer" onclick="setType(this)">Short Answer</button>
+          <button class="type-btn" data-type="mcq" onclick="setType(this)">MCQ</button>
+          <button class="type-btn" data-type="true_false" onclick="setType(this)">True/False</button>
+          <button class="type-btn" data-type="fill_in_blank" onclick="setType(this)">Fill in Blank</button>
+        </div>
+      </div>
+      <div id="mcq-box" class="hidden" style="margin-bottom:16px">
+        <label>MCQ Options (one per line)</label>
+        <textarea id="mcq-options" rows="3" placeholder="A) Option 1&#10;B) Option 2&#10;C) Option 3&#10;D) Option 4"></textarea>
+      </div>
+      <div style="margin-bottom:16px">
+        <label>Your Question</label>
+        <textarea id="question-input" rows="3" placeholder="Type or paste your homework question here..."></textarea>
+      </div>
+      <div style="margin-bottom:16px">
+        <label>Upload Homework Sheet (optional)</label>
+        <div class="dropzone" id="dropzone">
+          <p>📎 Drag image here or click to upload</p>
+          <p class="sub">PNG, JPG, JPEG, GIF — max 16MB</p>
+          <input type="file" id="file-input" accept="image/*" style="display:none">
+        </div>
+        <div class="preview hidden" id="preview-box">
+          <img id="preview-img" src="">
+          <button class="remove" onclick="removeImage()">✕</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:16px" onclick="solve()" id="solve-btn" disabled>
+        🔍 Solve
+      </button>
+    </div>
+    <div class="card hidden" id="answer-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin-bottom:0">Answer</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="copyAnswer()">📋 Copy</button>
+          <button class="btn btn-sm" onclick="clearAnswer()">✕</button>
+        </div>
+      </div>
+      <div class="answer-box" id="answer-box">
+        <div class="loading" id="loading-indicator">
+          <div class="spinner"></div>
+          <p>Solving your homework…</p>
+        </div>
+        <div id="answer-content"></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    AI Homework Solver · Built with <a href="https://pollinations.ai" target="_blank">Pollinations AI</a>
+  </div>
+
+<script>
+let currentType = 'short_answer';
+let currentImageData = null;
+let currentImageB64 = null;
+let isLoading = false;
+
+// Pollinations API config
+const TEXT_FREE_ENDPOINT = "https://text.pollinations.ai";
+const TEXT_AUTH_ENDPOINT = "https://gen.pollinations.ai/v1/chat/completions";
+const GEN_MODELS_ENDPOINT = "https://gen.pollinations.ai/v1/models";
+
+// ─── Helpers ─────────────────────────────────────────────────────────────
+
+function getBYOPKey() {
+    return sessionStorage.getItem('pollinations_key') || null;
+}
+
+function isBYOPConnected() {
+    return getBYOPKey() !== null;
+}
+
+function getSelectedModel() {
+    if (isBYOPConnected()) {
+        return sessionStorage.getItem('selected_model') || 'openai';
+    }
+    return null;
+}
+
+function updateStatus() {
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    if (isBYOPConnected()) {
+        dot.className = 'status-dot byop';
+        text.textContent = 'BYOP Connected — full access';
+    } else {
+        dot.className = 'status-dot free';
+        text.textContent = 'Free Tier — text only';
+    }
+}
+
+// ─── BYOP Connection ─────────────────────────────────────────────────────
+
+async function connectKey() {
+    const keyInput = document.getElementById('api-key-input');
+    const key = keyInput.value.trim();
+    if (!key) { showToast('Please enter your API key', 'error'); return; }
+
+    const btn = document.getElementById('connect-btn');
+    btn.disabled = true;
+    btn.textContent = 'Connecting…';
+
+    try {
+        // Verify key by fetching models
+        const resp = await fetch(GEN_MODELS_ENDPOINT, {
+            headers: { 'Authorization': `Bearer ${key}` }
+        });
+
+        if (resp.ok) {
+            const data = await resp.json();
+            const models = data.data || [];
+
+            sessionStorage.setItem('pollinations_key', key);
+            // Auto-select first model (or free model if available)
+            let defaultModel = 'openai';
+            for (let m of models) {
+                if (m.id && m.id.toLowerCase().includes('free')) {
+                    defaultModel = m.id;
+                    break;
+                }
+            }
+            if (models.length > 0 && models[0].id) {
+                defaultModel = models[0].id;
+            }
+            sessionStorage.setItem('selected_model', defaultModel);
+            sessionStorage.setItem('selected_model_id', defaultModel);
+
+            showToast('Connected successfully!', 'success');
+            document.getElementById('connect-card').classList.add('hidden');
+            updateStatus();
+        } else {
+            showToast('Invalid API key. Please check and try again.', 'error');
+        }
+    } catch (err) {
+        showToast('Connection failed: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Connect';
+    }
+}
+
+function disconnectKey() {
+    sessionStorage.removeItem('pollinations_key');
+    sessionStorage.removeItem('selected_model');
+    showToast('Disconnected', 'success');
+    updateStatus();
+}
+
+// ─── Model Selection ─────────────────────────────────────────────────────
+
+async function fetchModels() {
+    const key = getBYOPKey();
+    if (!key) return [];
+
+    try {
+        const resp = await fetch(GEN_MODELS_ENDPOINT, {
+            headers: { 'Authorization': `Bearer ${key}` }
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            return data.data || [];
+        }
+    } catch (err) {
+        console.error('Model fetch error:', err);
+    }
+    return [];
+}
+
+// ─── Solve ────────────────────────────────────────────────────────────────
+
+async function solve() {
+    const question = document.getElementById('question-input').value.trim();
+    if (!question && !currentImageB64) return;
+    if (isLoading) return;
+
+    isLoading = true;
+    const sb = document.getElementById('solve-btn');
+    sb.disabled = true;
+
+    const ac = document.getElementById('answer-card');
+    const acnt = document.getElementById('answer-content');
+    const ld = document.getElementById('loading-indicator');
+    ac.classList.remove('hidden');
+    acnt.classList.add('hidden');
+    ld.classList.remove('hidden');
+
+    try {
+        let prompt = question;
+        if (currentType === 'mcq') {
+            const opts = document.getElementById('mcq-options').value.trim();
+            if (opts) prompt = question + '\n\nOptions:\n' + opts;
+        }
+
+        // Wrap prompt with instruction
+        const wrappedPrompt = `You are an expert homework solver. Provide a clear, direct answer.\n\nQUESTION:\n${prompt}\n\nProvide a clear, accurate answer with explanation if applicable.`;
+
+        let solution = '';
+        let ok = false;
+        let tier = 'Free';
+
+        if (isBYOPConnected() && (currentImageB64 || getSelectedModel())) {
+            // BYOP tier
+            tier = 'BYOP';
+            const model = getSelectedModel();
+            const headers = { 'Authorization': `Bearer ${getBYOPKey()}`, 'Content-Type': 'application/json' };
+
+            let messages = [{ role: 'user', content: wrappedPrompt }];
+
+            // If image and vision model, send image
+            if (currentImageB64 && ['openai', 'openai-fast', 'gpt-4o', 'gpt-4o-mini'].includes(model)) {
+                messages = [{
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: wrappedPrompt },
+                        { type: 'image_url', image_url: { url: `data:image/png;base64,${currentImageB64}` } }
+                    ]
+                }];
+            }
+
+            const resp = await fetch(TEXT_AUTH_ENDPOINT, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ model: model, messages: messages })
+            });
+
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    solution = data.choices[0].message.content;
+                    ok = true;
+                } else {
+                    solution = JSON.stringify(data);
+                    ok = true;
+                }
+            } else if (resp.status === 402) {
+                solution = 'Insufficient Pollen credits. Top up at enter.pollinations.ai.';
+            } else if (resp.status === 401 || resp.status === 403) {
+                solution = 'Invalid API key. Please check your key in Settings.';
+            } else {
+                const errData = await resp.text();
+                solution = `API error (HTTP ${resp.status}). ${errData.slice(0, 200)}`;
+            }
+        } else {
+            // Free tier - send ONLY the question (no system prompt) to respect token budget
+            if (currentImageB64) {
+                solution = 'Image-based questions require a BYOP key. Connect your Pollinations account in Settings.';
+            } else {
+                tier = 'Free';
+                // Try POST to text.pollinations.ai/openai (returns JSON)
+                try {
+                    const resp = await fetch(TEXT_FREE_ENDPOINT + '/openai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ messages: [{ role: 'user', content: question }] })
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        if (data.choices && data.choices[0]) {
+                            solution = data.choices[0].message.content;
+                            ok = true;
+                        } else {
+                            solution = data.response || 'No response';
+                            ok = true;
+                        }
+                    }
+                } catch (e) {
+                    // Fallback to simple GET
+                    const encoded = encodeURIComponent(question);
+                    const resp = await fetch(`${TEXT_FREE_ENDPOINT}/${encoded}`);
+                    if (resp.ok) {
+                        solution = await resp.text();
+                        ok = true;
+                    }
+                }
+
+                if (!ok) {
+                    solution = 'Free tier unavailable. The free anonymous tier has a limited budget. Please wait a minute and try again, or connect a BYOP key for more reliable results.';
+                }
+            }
+        }
+
+        if (ok || currentImageB64) {
+            acnt.textContent = solution;
+            acnt.classList.remove('hidden');
+        } else {
+            acnt.textContent = solution;
+            acnt.classList.remove('hidden');
+        }
+    } catch (err) {
+        document.getElementById('answer-content').textContent = 'Network error: ' + err.message;
+        document.getElementById('answer-content').classList.remove('hidden');
+    } finally {
+        ld.classList.add('hidden');
+        sb.disabled = false;
+        isLoading = false;
+    }
+}
+
+// ─── UI Functions ─────────────────────────────────────────────────────────
+
+function setType(btn) {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentType = btn.getAttribute('data-type');
+    const mb = document.getElementById('mcq-box');
+    mb.classList.toggle('hidden', currentType !== 'mcq');
+}
+
+function handleFileSelect(files) {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
+    if (file.size > 16 * 1024 * 1024) { showToast('File too large (max 16MB)', 'error'); return; }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        currentImageData = e.target.result;
+        const parts = e.target.result.split(',');
+        currentImageB64 = parts[1] || '';
+        document.getElementById('preview-img').src = currentImageData;
+        document.getElementById('preview-box').classList.remove('hidden');
+        document.getElementById('dropzone').classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeImage() {
+    currentImageData = null;
+    currentImageB64 = null;
+    document.getElementById('preview-box').classList.add('hidden');
+    document.getElementById('dropzone').classList.remove('hidden');
+    document.getElementById('file-input').value = '';
+}
+
+function copyAnswer() {
+    const text = document.getElementById('answer-content').textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard!', 'success');
+    }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Copied to clipboard!', 'success');
+    });
+}
+
+function clearAnswer() {
+    document.getElementById('answer-card').classList.add('hidden');
+    document.getElementById('answer-content').textContent = '';
+}
+
+function showToast(msg, type) {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateStatus();
+
+    // Enable solve button
+    const qi = document.getElementById('question-input');
+    if (qi) {
+        qi.addEventListener('input', function() {
+            document.getElementById('solve-btn').disabled = !this.value.trim() && !currentImageB64;
+        });
+    }
+
+    // Drag and drop
+    const dz = document.getElementById('dropzone');
+    const fi = document.getElementById('file-input');
+    if (dz && fi) {
+        dz.addEventListener('click', function() { fi.click(); });
+        dz.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('drag'); });
+        dz.addEventListener('dragleave', function() { this.classList.remove('drag'); });
+        dz.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFileSelect(e.dataTransfer.files);
+        });
+        fi.addEventListener('change', function() {
+            if (this.files && this.files[0]) handleFileSelect(this.files);
+        });
+    }
+
+    // Show connect card if not BYOP and have image upload capability
+    if (!isBYOPConnected()) {
+        document.getElementById('connect-card').classList.remove('hidden');
+    }
+});
+</script>
+</body>
+</html>

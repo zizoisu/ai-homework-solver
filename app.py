@@ -10,7 +10,7 @@ Developer markup: 25% (app earnings go to zizo)
 import os
 import json
 import urllib.parse
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect
 import requests
 
 app = Flask(__name__)
@@ -25,6 +25,12 @@ TEXT_FREE_GET_ENDPOINT = "https://text.pollinations.ai"
 # BYOP tier: gen.pollinations.ai/v1 — authenticated, full model selection
 GEN_AUTH_ENDPOINT = "https://gen.pollinations.ai/v1/chat/completions"
 GEN_MODELS_ENDPOINT = "https://gen.pollinations.ai/v1/models"
+
+# ── OAuth / App Key ───────────────────────────────────────────────────────
+APP_KEY = os.environ.get("POLLINATIONS_APP_KEY", "pk_rTuZ5SRUSxvDiGR0")
+AUTH_BASE = "https://enter.pollinations.ai"
+TOKEN_ENDPOINT = f"{AUTH_BASE}/api/oauth/token"
+AUTHORIZE_ENDPOINT = f"{AUTH_BASE}/authorize"
 
 # Fallback model list when API is unreachable (BYOP tier only)
 FALLBACK_MODELS = [
@@ -250,13 +256,118 @@ def settings():
         models = fetch_models_from_api(get_user_key())
         if not models:
             models = FALLBACK_MODELS
+    key_type = session.get("pollinations_key_type", "manual")
     return render_template(
         "settings.html",
         connected=connected,
         models=models,
         selected_model=session.get("selected_model", "openai" if connected else ""),
         key_hint=get_user_key()[:8] + "…" if connected else "",
+        key_type=key_type,
+        app_key=APP_KEY,
+        oauth_url="/api/oauth/login",
+        oauth_logout_url="/api/oauth/logout",
     )
+
+
+@app.route("/api/oauth/login", methods=["GET"])
+def oauth_login():
+    """Start OAuth2 PKCE flow — redirect user to enter.pollinations.ai."""
+    import secrets
+    import base64
+    import hashlib
+
+    # Build redirect URI from the request, falling back to known patterns
+    redirect_uri = request.host_url.rstrip("/") + "/api/oauth/callback"
+
+    # Generate PKCE verifier + challenge
+    verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
+    challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(verifier.encode()).digest()
+    ).decode("utf-8").rstrip("=")
+
+    state = secrets.token_urlsafe(16)
+
+    session["pkce_verifier"] = verifier
+    session["oauth_state"] = state
+
+    auth_url = (
+        f"{AUTHORIZE_ENDPOINT}"
+        f"?response_type=code"
+        f"&client_id={APP_KEY}"
+        f"&redirect_uri={urllib.parse.quote(redirect_uri)}"
+        f"&scope=profile%20usage"
+        f"&state={state}"
+        f"&code_challenge={challenge}"
+        f"&code_challenge_method=S256"
+    )
+    return redirect(auth_url)
+
+
+@app.route("/api/oauth/callback", methods=["GET"])
+def oauth_callback():
+    """Handle OAuth callback — exchange code for access token."""
+    import base64
+    import hashlib
+
+    code = request.args.get("code")
+    state = request.args.get("state")
+
+    if not code:
+        return "Authorization failed: no code received", 400
+
+    stored_state = session.pop("oauth_state", None)
+    if state and state != stored_state:
+        return "Authorization failed: state mismatch (CSRF)", 400
+
+    verifier = session.pop("pkce_verifier", None)
+    if not verifier:
+        return "Authorization failed: PKCE verifier missing (expired?)", 400
+
+    redirect_uri = request.host_url.rstrip("/") + "/api/oauth/callback"
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "client_id": APP_KEY,
+        "redirect_uri": redirect_uri,
+        "code_verifier": verifier,
+    }
+    resp = requests.post(TOKEN_ENDPOINT, data=data, timeout=30)
+    if not resp.ok:
+        return f"Token exchange failed: {resp.status_code}", 400
+
+    token_data = resp.json()
+    session["pollinations_key"] = token_data["access_token"]
+    session["pollinations_key_type"] = "oauth"
+    if "refresh_token" in token_data:
+        session["pollinations_refresh_token"] = token_data["refresh_token"]
+
+    # Redirect back to the app
+    return redirect("/settings")
+
+
+@app.route("/api/oauth/logout", methods=["POST"])
+def oauth_logout():
+    """Revoke OAuth token and clear session."""
+    key = session.get("pollinations_key")
+    key_type = session.get("pollinations_key_type")
+
+    if key and key_type == "oauth":
+        # Revoke the token
+        try:
+            requests.post(
+                f"{AUTH_BASE}/api/oauth/revoke",
+                data={"token": key, "client_id": APP_KEY},
+                timeout=10,
+            )
+        except Exception:
+            pass  # Best-effort revocation
+
+    session.pop("pollinations_key", None)
+    session.pop("pollinations_key_type", None)
+    session.pop("pollinations_refresh_token", None)
+    session.pop("selected_model", None)
+    return jsonify(success=True, message="Disconnected")
 
 
 @app.route("/api/solve", methods=["POST"])
@@ -338,6 +449,7 @@ def connect_api():
 
     # Store key and select a good default model
     session["pollinations_key"] = key
+    session["pollinations_key_type"] = "manual"
     # Prefer a free-tier model if available, otherwise the first model
     default_model = None
     for m in models:

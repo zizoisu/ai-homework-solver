@@ -9,51 +9,33 @@
     :root {
       --bg: #0a0e17; --bg2: #111827; --card: #1a2230; --border: #2a3a4f;
       --fg: #f0f4f8; --muted: #6b7a8c; --accent: #00d4aa;
-      --accent-dim: rgba(0, 212, 170, 0.15); --danger: #ff4757;
-      --warning: #f59e0b;
+      --accent-dim: rgba(0, 212, 170, 0.15); --danger: #ff4757; --warning: #f59e0b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; }
-    .bg-pattern {
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(circle at 20% 80%, rgba(0,212,170,0.06) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0,212,170,0.04) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(0,212,170,0.02) 0%, transparent 50%);
-      pointer-events: none; z-index: 0;
-    }
+    .bg-pattern { position: fixed; inset: 0; background: radial-gradient(circle at 20% 80%, rgba(0,212,170,0.06) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(0,212,170,0.04) 0%, transparent 50%), radial-gradient(circle at 40% 40%, rgba(0,212,170,0.02) 0%, transparent 50%); pointer-events: none; z-index: 0; }
     .container { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 24px; }
     .header { text-align: center; padding: 28px 0 16px; }
     .header h1 { font-size: 30px; font-weight: 700; }
     .header p { color: var(--muted); margin-top: 6px; font-size: 14px; }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
     h3 { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
-    a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
-      cursor: pointer; border: 1px solid var(--border); background: transparent;
-      color: var(--fg); transition: all 0.18s; outline: none;
-    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--fg); transition: all 0.18s; outline: none; }
     .btn:hover { border-color: var(--accent); color: var(--accent); }
     .btn-primary { background: var(--accent); color: #0a0e17; font-weight: 600; }
     .btn-primary:hover { background: #00c49a; }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-sm { padding: 6px 14px; font-size: 13px; }
-    input, textarea, select {
-      width: 100%; padding: 12px 14px; background: var(--bg2);
-      border: 1px solid var(--border); border-radius: 8px;
-      color: var(--fg); font-size: 14px; font-family: inherit;
-      outline: none; transition: border-color 0.18s;
-    }
-    input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-    input::placeholder, textarea::placeholder { color: var(--muted); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #ff293f; }
+    input { width: 100%; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.18s; }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    input::placeholder { color: var(--muted); }
     label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--muted); }
     .model-list { display: flex; flex-direction: column; gap: 8px; }
-    .model-item {
-      background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
-      padding: 12px; cursor: pointer; transition: all 0.18s;
-    }
+    .model-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.18; }
     .model-item:hover { border-color: var(--accent); background: var(--accent-dim); }
     .model-item.selected { border-color: var(--accent); }
     .model-item .model-name { font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 6px; }
@@ -62,46 +44,38 @@
     .model-badge.free { background: rgba(0,212,170,0.15); color: var(--accent); }
     .model-badge.vision { background: rgba(245,158,11,0.15); color: var(--warning); }
     .model-badge.active { background: rgba(0,212,170,0.2); color: var(--accent); }
-    .token-display {
-      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
-      padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 13px;
-      overflow-x: auto; color: var(--accent);
-    }
+    .token-display { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 13px; overflow-x: auto; color: var(--accent); }
     .status-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
     .status-dot { width: 7px; height: 7px; border-radius: 50%; }
     .status-dot.free { background: var(--accent); }
-    .spinner {
-      width: 18px; height: 18px; border: 3px solid var(--border);
-      border-top-color: var(--accent); border-radius: 50%;
-      animation: spin 0.8s linear infinite; margin: 0 auto;
-    }
+    .spinner { width: 18px; height: 18px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .toast {
-      position: fixed; top: 20px; right: 20px; padding: 12px 20px;
-      border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 999;
-      animation: pop 0.3s ease; max-width: 380px; border: 1px solid var(--border);
-    }
+    .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 999; animation: pop 0.3s ease; max-width: 380px; border: 1px solid var(--border); }
     .toast.success { background: rgba(0,212,170,0.1); color: var(--accent); border-color: var(--accent); }
     .toast.error { background: rgba(255,71,87,0.1); color: var(--danger); border-color: var(--danger); }
     @keyframes pop { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
     .hidden { display: none !important; }
+    .oauth-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: #00d4aa; color: #0a0e17; transition: all 0.18s; }
+    .oauth-btn:hover { background: #00c49a; }
+    .oauth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .oauth-btn img { width: 18px; height: 18px; }
+    .divider { text-align: center; margin: 14px 0; color: var(--muted); font-size: 13px; position: relative; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--border); }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
     @media (max-width: 600px) { .header h1 { font-size: 24px; } .container { padding: 16px; } }
   </style>
 </head>
 <body>
   <div class="bg-pattern"></div>
   <div class="container">
-
-    <!-- Header -->
     <div class="header">
       <h1>Settings</h1>
       <p>Pollinations AI Configuration</p>
       <div class="status-row">
-        <span class="status-dot {% if connected %}free{% else %}free{% endif %}" id="status-dot"></span>
-        <span style="font-size:13px" id="status-text">
-          {% if connected %}BYOP Connected{% else %}Free Tier{% endif %}
-        </span>
-        <a href="/" style="margin-left:auto;font-size:13px">← Back to Solver</a>
+        <span class="status-dot free" id="status-dot"></span>
+        <span style="font-size:13px" id="status-text">Free Tier</span>
+        <a href="index.html" style="margin-left:auto;font-size:13px">← Back to Solver</a>
       </div>
     </div>
 
@@ -112,26 +86,41 @@
         Unlock image-based solving, premium models, and higher rate limits.
       </p>
 
-      {% if connected %}
-      <!-- Connected state -->
-      <div style="margin-bottom:14px">
-        <label>Connected Key</label>
-        <div class="token-display" id="token-display">{{ key_hint }}</div>
+      <!-- OAuth Connect View -->
+      <div id="oauth-view">
+        <button class="oauth-btn" id="connect-oauth-btn" onclick="connectOAuth()">
+          <img src="data:image/svg+xml;base64,PHu5JLg==" alt="GitHub">
+          Connect with Pollinations
+        </button>
+        <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px">
+          Uses OAuth2 PKCE flow. No keys stored in the app.
+        </p>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-danger" onclick="disconnectKey()" id="disconnect-btn">Disconnect</button>
-        <button class="btn" onclick="refreshModels()" id="refresh-btn">Refresh Models</button>
+
+      <div class="divider">or enter your key manually</div>
+
+      <!-- Manual Connect View -->
+      <div id="manual-view">
+        <div id="connected-view" class="hidden">
+          <div style="margin-bottom:14px">
+            <label>Connected Key</label>
+            <div class="token-display" id="token-display"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-danger" onclick="disconnectKey()">Disconnect</button>
+            <button class="btn" onclick="refreshModels()" id="refresh-btn">Refresh Models</button>
+          </div>
+        </div>
+        <div id="connect-view">
+          <div style="margin-bottom:14px">
+            <input type="text" id="api-key-input" placeholder="sk_… (from enter.pollinations.ai)" autocomplete="off" maxlength="120">
+          </div>
+          <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="connectKey()" id="connect-btn">Connect</button>
+          <p style="font-size:12px;color:var(--muted);text-align:center">
+            Get your key at <a href="https://enter.pollinations.ai" target="_blank">enter.pollinations.ai</a>
+          </p>
+        </div>
       </div>
-      {% else %}
-      <!-- Not connected state -->
-      <div style="display:flex;gap:8px">
-        <input type="text" id="api-key-input" placeholder="sk_…" autocomplete="off" maxlength="120">
-        <button class="btn btn-primary" onclick="connectKey()" id="connect-btn">Connect</button>
-      </div>
-      <p style="font-size:12px;color:var(--muted);margin-top:8px">
-        Get your key from <a href="https://enter.pollinations.ai" target="_blank">enter.pollinations.ai</a>
-      </p>
-      {% endif %}
     </div>
 
     <!-- Models Card -->
@@ -140,152 +129,320 @@
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
         Choose a model for solving. Vision-capable models support image-based questions.
       </p>
-      {% if connected and models %}
       <div class="model-list" id="model-list">
-        {% for model in models %}
-        <div class="model-item {% if model.id == selected_model %}selected{% endif %}"
-             onclick="selectModel('{{ model.id }}', this)">
-          <div>
-            <div class="model-name">
-              {{ model.name }}
-              {% if model.free %}<span class="model-badge free">FREE</span>{% endif %}
-              {% if model.vision %}<span class="model-badge vision">VISION</span>{% endif %}
-              {% if model.id == selected_model %}<span class="model-badge active">ACTIVE</span>{% endif %}
-            </div>
-            <div class="model-desc">{{ model.description }}</div>
-          </div>
-          <div style="font-size:11px;color:var(--muted)">{{ model.owned_by }}</div>
+        <div style="text-align:center;padding:20px">
+          <p style="color:var(--muted);font-size:14px">
+            Connect a BYOP key to view available models.
+          </p>
         </div>
-        {% endfor %}
       </div>
-      {% else %}
-      <div style="text-align:center;padding:20px">
-        <div style="color:var(--accent);font-size:24px;margin-bottom:8px">🆓</div>
-        <p style="font-size:14px;font-weight:500">Free Tier Active</p>
-        <p style="font-size:12px;color:var(--muted);margin-top:6px">
-          Free tier uses <strong>gpt-oss-20b</strong> automatically for text questions.<br>
-          Connect a BYOP key to access premium models and image-based solving.
-        </p>
-      </div>
-      {% endif %}
     </div>
-
   </div>
+
   <div style="text-align:center;padding:24px;font-size:12px;color:var(--muted)">
     AI Homework Solver Settings · <a href="https://pollinations.ai" target="_blank">Pollinations AI</a>
   </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Update status dot
-  const connected = document.getElementById('token-display') !== null ||
-                    document.getElementById('disconnect-btn') !== null;
-  const dot = document.getElementById('status-dot');
-  if (!connected) {
-    dot.classList.remove('free');
-  }
-});
+// ─── Configuration ─────────────────────────────────────────────────────────
+const APP_KEY = "pk_rTuZ5SRUSxvDiGR0";  // ← Your Pollinations App Key
+const AUTH_BASE = "https://enter.pollinations.ai";
+const GEN_MODELS_ENDPOINT = "https://gen.pollinations.ai/v1/models";
+const TOKEN_ENDPOINT = `${AUTH_BASE}/api/oauth/token`;
+const REDIRECT_URI = window.location.origin + "/ai-homework-solver/";
 
-async function connectKey() {
-  const ki = document.getElementById('api-key-input');
-  const key = ki.value.trim();
-  const btn = document.getElementById('connect-btn');
-  if (!key) { showToast('Please enter your API key', 'error'); return; }
-
-  btn.disabled = true;
-  btn.textContent = 'Connecting…';
-
-  try {
-    const resp = await fetch('/api/connect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: key })
-    });
-    const data = await resp.json();
-    if (data.success) {
-      showToast('Connected successfully!', 'success');
-      setTimeout(() => location.reload(), 800);
-    } else {
-      showToast('Connection failed: ' + (data.error || 'Unknown error'), 'error');
-    }
-  } catch (err) {
-    showToast('Error: ' + err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Connect';
-  }
+// ─── PKCE Helpers ──────────────────────────────────────────────────────────
+function generatePKCE() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const verifier = btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  return verifier;
 }
 
-async function disconnectKey() {
-  try {
-    await fetch('/api/disconnect', { method: 'POST' });
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+// ─── Auth State ─────────────────────────────────────────────────────────────
+function getBYOPKey() {
+    return sessionStorage.getItem('pollinations_key') || null;
+}
+function getSelectedModel() {
+    return sessionStorage.getItem('selected_model') || '';
+}
+function setSelectedModel(modelId) {
+    sessionStorage.setItem('selected_model', modelId);
+}
+function clearAuth() {
+    sessionStorage.removeItem('pollinations_key');
+    sessionStorage.removeItem('pollinations_key_type');
+    sessionStorage.removeItem('pollinations_refresh_token');
+    sessionStorage.removeItem('selected_model');
+    sessionStorage.removeItem('pkce_verifier');
+}
+function getAuthType() {
+    return sessionStorage.getItem('pollinations_key_type') || 'oauth';
+}
+
+// ─── OAuth2 PKCE Flow ───────────────────────────────────────────────────────
+async function connectOAuth() {
+    const btn = document.getElementById('connect-oauth-btn');
+    btn.disabled = true;
+    btn.textContent = 'Preparing authentication…';
+
+    try {
+        const verifier = generatePKCE();
+        const challenge = await generateCodeChallenge(verifier);
+        const state = btoa(Math.random().toString(36).substring(2));
+
+        // Store PKCE verifier and state in sessionStorage (cleared after use)
+        sessionStorage.setItem('pkce_verifier', verifier);
+        sessionStorage.setItem('oauth_state', state);
+
+        // Build authorization URL
+        const authUrl = new URL(`${AUTH_BASE}/authorize`);
+        authUrl.searchParams.set('response_type', 'code');
+        authUrl.searchParams.set('client_id', APP_KEY);
+        authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+        authUrl.searchParams.set('scope', 'profile usage');
+        authUrl.searchParams.set('state', state);
+        authUrl.searchParams.set('code_challenge', challenge);
+        authUrl.searchParams.set('code_challenge_method', 'S256');
+
+        // Redirect user to authorization endpoint
+        window.location.href = authUrl.toString();
+    } catch (err) {
+        showToast('Could not start OAuth flow: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<img src="data:image/svg+xml;base64,PHu5JLg==" alt="Poli"> Connect with Pollinations';
+    }
+}
+
+async function handleOAuthCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+
+    if (!code) return false;
+
+    // Verify state
+    const storedState = sessionStorage.getItem('oauth_state');
+    if (state && state !== storedState) {
+        showToast('OAuth state mismatch — possible CSRF', 'error');
+        return false;
+    }
+
+    const btn = document.getElementById('connect-oauth-btn');
+    btn.disabled = true;
+    btn.textContent = 'Exchanging for API key…';
+
+    try {
+        const verifier = sessionStorage.getItem('pkce_verifier');
+        const params = new URLSearchParams();
+        params.set('grant_type', 'authorization_code');
+        params.set('code', code);
+        params.set('client_id', APP_KEY);
+        params.set('redirect_uri', REDIRECT_URI);
+        params.set('code_verifier', verifier);
+
+        const resp = await fetch(TOKEN_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+
+        if (!resp.ok) {
+            const errText = await resp.text();
+            throw new Error(`Token exchange failed (${resp.status}): ${errText.slice(0, 200)}`);
+        }
+
+        const data = await resp.json();
+        // Store the token in sessionStorage (secure: not in URL, not in localStorage)
+        sessionStorage.setItem('pollinations_key', data.access_token);
+        sessionStorage.setItem('pollinations_key_type', 'oauth');
+        if (data.refresh_token) {
+            sessionStorage.setItem('pollinations_refresh_token', data.refresh_token);
+        }
+
+        // Clean up PKCE state
+        sessionStorage.removeItem('pkce_verifier');
+        sessionStorage.removeItem('oauth_state');
+
+        // Clear the URL (remove query params)
+        window.history.replaceState({}, document.title, REDIRECT_URI);
+
+        showToast('Connected with Pollinations!', 'success');
+        setTimeout(() => location.reload(), 800);
+    } catch (err) {
+        showToast('Connection failed: ' + err.message, 'error');
+        btn.disabled = false;
+    }
+}
+
+// ─── Manual Key Connect ─────────────────────────────────────────────────────
+async function connectKey() {
+    const key = document.getElementById('api-key-input').value.trim();
+    if (!key) { showToast('Please enter your API key', 'error'); return; }
+
+    const btn = document.getElementById('connect-btn');
+    btn.disabled = true;
+    btn.textContent = 'Connecting…';
+
+    try {
+        const resp = await fetch(GEN_MODELS_ENDPOINT, {
+            headers: { 'Authorization': `Bearer ${key}` }
+        });
+
+        if (resp.ok) {
+            const data = await resp.json();
+            const models = data.data || [];
+
+            sessionStorage.setItem('pollinations_key', key);
+            sessionStorage.setItem('pollinations_key_type', 'manual');
+
+            // Select a default model (prefer 'openai' or first available)
+            let defaultModel = 'openai';
+            if (models.length > 0) {
+                const openaiModel = models.find(m => m.id === 'openai');
+                defaultModel = openaiModel ? 'openai' : models[0].id;
+            }
+            sessionStorage.setItem('selected_model', defaultModel);
+
+            showToast('Connected successfully!', 'success');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showToast('Invalid API key. Please check and try again.', 'error');
+        }
+    } catch (err) {
+        showToast('Connection failed: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Connect';
+    }
+}
+
+function disconnectKey() {
+    clearAuth();
     showToast('Disconnected', 'success');
     setTimeout(() => location.reload(), 800);
-  } catch (err) {
-    showToast('Error: ' + err.message, 'error');
-  }
 }
 
+// ─── Model Selection ───────────────────────────────────────────────────────
 async function refreshModels() {
-  const list = document.getElementById('model-list');
-  list.innerHTML = '<div style="text-align:center;padding:20px"><div class="spinner"></div><p style="margin-top:8px;font-size:13px">Loading models…</p></div>';
+    const key = getBYOPKey();
+    if (!key) { showToast('Please connect your BYOP key first', 'error'); return; }
 
-  try {
-    const resp = await fetch('/api/models');
-    const data = await resp.json();
-    if (data.models && data.models.length > 0) {
-      let html = '';
-      data.models.forEach(m => {
-        const isFree = m.free ? '<span class="model-badge free">FREE</span>' : '';
-        const isVision = m.vision ? '<span class="model-badge vision">VISION</span>' : '';
-        const isActive = m.id === data.selected_model ? '<span class="model-badge active">ACTIVE</span>' : '';
-        const selected = m.id === data.selected_model ? 'selected' : '';
-        html += '<div class="model-item ' + selected + '" onclick="selectModel(\'' + m.id + '\', this)">' +
-                '<div><div class="model-name">' + (m.name || m.id) + isFree + isVision + isActive +
-                '</div><div class="model-desc">' + (m.description || '') +
-                '</div></div><div style="font-size:11px;color:var(--muted)">' + (m.owned_by || '') + '</div></div>';
-      });
-      list.innerHTML = html;
-    } else {
-      list.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">No models available</p>';
+    const list = document.getElementById('model-list');
+    list.innerHTML = '<div style="text-align:center;padding:20px"><p style="color:var(--muted)">Loading models…</p></div>';
+
+    try {
+        const resp = await fetch(GEN_MODELS_ENDPOINT, {
+            headers: { 'Authorization': `Bearer ${key}` }
+        });
+
+        if (resp.ok) {
+            const data = await resp.json();
+            const models = data.data || [];
+
+            if (models.length === 0) {
+                list.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px">No models available</p>';
+                return;
+            }
+
+            let html = '';
+            models.forEach(m => {
+                const modelId = m.id || '';
+                const name = modelId.replace(/-/g, ' ').replace(/^\\w/, c => c.toUpperCase());
+                const ownedBy = m.owned_by || 'Pollinations';
+                const vision = m.input_modalities && m.input_modalities.includes('image');
+                const isFree = modelId.includes('free') || modelId === 'gpt-oss-20b';
+                const selected = modelId === getSelectedModel();
+                const badges = (isFree ? '<span class="model-badge free">FREE</span>' : '') +
+                              (vision ? '<span class="model-badge vision">VISION</span>' : '') +
+                              (selected ? '<span class="model-badge active">ACTIVE</span>' : '');
+
+                html += `<div class="model-item ${selected ? 'selected' : ''}" onclick="selectModel('${modelId}')">
+                  <div class="model-name">${name} ${badges}</div>
+                  <div class="model-desc">Owned by ${ownedBy}${vision ? ' · vision' : ''}</div>
+                </div>`;
+            });
+            list.innerHTML = html;
+        } else {
+            list.innerHTML = `<p style="text-align:center;color:var(--danger);padding:20px">Failed to load models: HTTP ${resp.status}</p>`;
+        }
+    } catch (err) {
+        list.innerHTML = `<p style="text-align:center;color:var(--danger);padding:20px">Error: ${err.message}</p>`;
     }
-  } catch (err) {
-    list.innerHTML = '<p style="text-align:center;color:var(--danger);padding:20px">Failed to load models: ' + err.message + '</p>';
-  }
 }
 
-async function selectModel(modelId, element) {
-  // Update UI
-  document.querySelectorAll('.model-item').forEach(function(item) {
-    item.classList.remove('selected');
-  });
-  element.classList.add('selected');
-
-  showToast('Selected: ' + modelId, 'success');
-
-  try {
-    const resp = await fetch('/api/select-model', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model_id: modelId })
+function selectModel(modelId) {
+    setSelectedModel(modelId);
+    showToast('Selected: ' + modelId, 'success');
+    // Re-render to show selected state
+    const items = document.querySelectorAll('.model-item');
+    items.forEach(item => {
+        item.classList.remove('selected');
+        const badge = item.querySelector('.model-badge.active');
+        if (badge) badge.remove();
     });
-    const data = await resp.json();
-    if (!data.success) {
-      showToast('Failed to save selection', 'error');
+    const selected = document.querySelector(`.model-item[onclick="selectModel('${modelId}')"]`);
+    if (selected) {
+        selected.classList.add('selected');
     }
-  } catch (err) {
-    console.error('Failed to select model:', err);
-  }
 }
 
-function showToast(msg, type) {
-  document.querySelectorAll('.toast').forEach(function(t) { t.remove(); });
-  const toast = document.createElement('div');
-  toast.className = 'toast ' + type;
-  toast.textContent = msg;
-  document.body.appendChild(toast);
-  setTimeout(function() { toast.remove(); }, 3000);
+// ─── Status ─────────────────────────────────────────────────────────────────
+function updateStatus() {
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    if (getBYOPKey()) {
+        dot.className = 'status-dot free';
+        text.textContent = 'BYOP Connected (' + (getAuthType() === 'oauth' ? 'OAuth' : 'Manual') + ')';
+    } else {
+        dot.className = 'status-dot free';
+        text.textContent = 'Free Tier';
+    }
 }
+
+function updateTokenDisplay() {
+    const key = getBYOPKey();
+    if (key) {
+        document.getElementById('token-display').textContent = key.substring(0, 10) + '…';
+        document.getElementById('connected-view').classList.remove('hidden');
+        document.getElementById('connect-view').classList.add('hidden');
+    }
+}
+
+// ─── Toast ─────────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle OAuth callback if present in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('code')) {
+        // Will handle after OAuth redirect
+        handleOAuthCallback();
+    } else {
+        updateStatus();
+    }
+
+    if (getBYOPKey()) {
+        updateTokenDisplay();
+        refreshModels();
+    }
+});
 </script>
 </body>
 </html>

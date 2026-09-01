@@ -3,7 +3,7 @@
   "category": "learn",
   "platform": "web",
   "byop": true,
-  "description": "Solve homework problems with AI – free for text (anonymous tier), paid for advanced features including image-based questions and vision-capable models",
+  "description": "Solve homework problems with AI \u2013 free for text (anonymous tier), paid for advanced features including image-based questions and vision-capable models",
   "url": "https://zizoisu.github.io/ai-homework-solver/",
   "githubUsername": "zizoisu",
   "version": "2.1.0",
@@ -15,7 +15,8 @@
     "BYOP authentication via enter.pollinations.ai",
     "Authenticated generation via gen.pollinations.ai",
     "Settings dashboard for API key management and model selection",
-    "25% developer markup enabled"
+    "25% developer markup enabled",
+    "OAuth2 PKCE login flow (no key paste needed)"
   ],
   "requirements": [
     "Python 3.9+",

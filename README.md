@@ -60,11 +60,44 @@ All Pollinations API endpoints support CORS, so no backend is needed. Your BYOP 
 
 ## Getting a BYOP Key
 
+The app supports two connection methods:
+
+### Option A: OAuth2 Login (Recommended)
+1. Click **"Connect with Pollinations"** in Settings
+2. You'll be redirected to [enter.pollinations.ai](https://enter.pollinations.ai) to authorize
+3. Choose your model and start solving!
+
+This uses the OAuth2 PKCE flow — your API key is stored in browser `sessionStorage` (never in localStorage, URLs, or logs).
+
+### Option B: Manual Key
 1. Go to [enter.pollinations.ai](https://enter.pollinations.ai)
 2. Click **Authorize** (OAuth login)
 3. Copy your `sk_…` key
 4. Paste it in the **Settings** page → **Connect**
-5. Choose your model and start solving!
+
+## How It Works — OAuth2 PKCE Flow
+
+```
+1. App builds auth URL with:
+   client_id=pk_rTuZ5SRUSxvDiGR0 (publishable App Key)
+   scope=profile usage
+   code_challenge=SHA256(verifier) (PKCE)
+   state=random-csrf-token
+
+2. User redirected to enter.pollinations.ai/authorize
+   → User logs in, reviews permissions, clicks "Allow"
+   → Redirect back with ?code=... &state=...
+
+3. App exchanges code for sk_... access_token at /api/oauth/token
+   (using the PKCE verifier — never exposes client secret)
+
+4. access_token stored in sessionStorage, used for:
+   - gen.pollinations.ai/v1/chat/completions (API calls)
+   - gen.pollinations.ai/v1/models (model list)
+```
+
+The App Key (`pk_...`) is **publishable** — designed to be public in client-side code.
+The access token (`sk_...`) is **never** stored in URLs, localStorage, or logs.
 
 ## API Endpoints (Flask backend, if running locally)
 
@@ -73,8 +106,11 @@ All Pollinations API endpoints support CORS, so no backend is needed. Your BYOP 
 | `POST` | `/api/solve` | Solve a homework question (auto-selects free/BYOP) |
 | `GET`  | `/api/models` | List available models (requires BYOP key) |
 | `POST` | `/api/select-model` | Set active model |
-| `POST` | `/api/connect` | Connect BYOP key |
-| `POST` | `/api/disconnect` | Disconnect BYOP key |
+|| `POST` | `/api/oauth/login` | Start OAuth2 PKCE flow (redirect to enter.pollinations.ai) |
+|| `GET`  | `/api/oauth/callback` | OAuth2 callback — exchange code for access token |
+|| `POST` | `/api/oauth/logout` | Revoke OAuth token and clear session |
+|| `POST` | `/api/connect` | Connect BYOP key manually |
+|| `POST` | `/api/disconnect` | Disconnect BYOP key |
 | `POST` | `/api/upload-image` | Upload image for vision models |
 
 ## Deployment

@@ -4,8 +4,8 @@
   "platform": "web",
   "byop": true,
   "description": "Solve homework problems with AI – free for text (anonymous tier), paid for advanced features including image-based questions and vision-capable models",
-  "url": "https://zizo.github.io/ai-homework-solver/",
-  "githubUsername": "zizo",
+  "url": "https://zizoisu.github.io/ai-homework-solver/",
+  "githubUsername": "zizoisu",
   "version": "2.1.0",
   "developer_markup_percent": 25,
   "features": [

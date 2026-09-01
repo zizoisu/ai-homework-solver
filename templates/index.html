@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Homework Solver</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e17;
+      --bg2: #111827;
+      --card: #1a2230;
+      --border: #2a3a4f;
+      --fg: #f0f4f8;
+      --muted: #6b7a8c;
+      --accent: #00d4aa;
+      --accent-dim: rgba(0, 212, 170, 0.15);
+      --danger: #ff4757;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; }
+    .bg-pattern {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(0,212,170,0.06) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0,212,170,0.04) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(0,212,170,0.02) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+    .container { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 24px; }
+    .header { text-align: center; padding: 28px 0 16px; }
+    .header h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; }
+    .header p { color: var(--muted); margin-top: 6px; font-size: 14px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card.compact { padding: 20px; }
+    h3 { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border); background: transparent;
+      color: var(--fg); transition: all 0.18s; outline: none;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: var(--accent); color: #0a0e17; font-weight: 600; }
+    .btn-primary:hover { background: #00c49a; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+    input, textarea, select {
+      width: 100%; padding: 12px 14px; background: var(--bg2);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--fg); font-size: 14px; font-family: inherit;
+      outline: none; transition: border-color 0.18s;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+    label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--muted); }
+    .type-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .type-btn {
+      padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      background: transparent; color: var(--muted); transition: all 0.18s;
+    }
+    .type-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .type-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+    .dropzone {
+      border: 2px dashed var(--border); border-radius: 12px; padding: 28px;
+      text-align: center; cursor: pointer; transition: all 0.2s;
+    }
+    .dropzone:hover { border-color: var(--accent); background: var(--accent-dim); }
+    .dropzone.drag { border-color: var(--accent); }
+    .dropzone p { color: var(--muted); font-size: 14px; margin-bottom: 4px; }
+    .dropzone .sub { font-size: 12px; color: var(--muted); }
+    .dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .preview { margin-top: 14px; position: relative; }
+    .preview img { max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--border); }
+    .preview .remove {
+      position: absolute; top: -10px; right: -10px; width: 24px; height: 24px;
+      border-radius: 50%; background: var(--danger); color: #fff; border: none;
+      cursor: pointer; font-size: 14px; display: flex; align-items: center;
+      justify-content: center;
+    }
+    .answer-box {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px; min-height: 120px;
+      white-space: pre-wrap; word-wrap: break-word; font-size: 14px; line-height: 1.6;
+    }
+    .answer-box.loading { text-align: center; color: var(--muted); }
+    .spinner {
+      width: 22px; height: 22px; border: 3px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.7s linear infinite; margin: 0 auto 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast {
+      position: fixed; top: 20px; right: 20px; padding: 12px 20px;
+      border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 999;
+      animation: pop 0.3s ease; max-width: 380px;
+      border: 1px solid var(--border);
+    }
+    .toast.success { background: rgba(0,212,170,0.1); color: var(--accent); border-color: var(--accent); }
+    .toast.error { background: rgba(255,71,87,0.1); color: var(--danger); border-color: var(--danger); }
+    @keyframes pop { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    .status-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .status-dot.free { background: var(--accent); }
+    .status-dot.byop { background: var(--accent); }
+    .footer { text-align: center; padding: 24px; font-size: 12px; color: var(--muted); }
+    .hidden { display: none !important; }
+    @media (max-width: 600px) {
+      .header h1 { font-size: 24px; }
+      .type-row { flex-direction: column; }
+      .container { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-pattern"></div>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <h1>AI Homework Solver</h1>
+      <p>Solve homework problems with AI — free for text, advanced with BYOP</p>
+    </div>
+
+    <!-- Status -->
+    <div class="status-row" id="status-row">
+      <span class="status-dot free" id="status-dot"></span>
+      <span id="status-text" style="font-size:13px">Free Tier — text only</span>
+      <a href="/settings" style="margin-left:auto;font-size:13px">⚙ Settings</a>
+    </div>
+
+    <!-- Connect Card -->
+    <div class="card hidden" id="connect-card">
+      <h3>🔐 Connect Your Pollinations Account</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
+        Unlock image-based solving and access to premium models.
+      </p>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="api-key-input" placeholder="sk_…" autocomplete="off" maxlength="120">
+        <button class="btn btn-primary" onclick="connectKey()" id="connect-btn">Connect</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">
+        Get your key from <a href="https://enter.pollinations.ai" target="_blank">enter.pollinations.ai</a>
+      </p>
+    </div>
+
+    <!-- Question Card -->
+    <div class="card" id="question-card">
+      <h3>📝 Ask Your Homework Question</h3>
+
+      <!-- Question type -->
+      <div style="margin-bottom:16px">
+        <label>Question Type</label>
+        <div class="type-row">
+          <button class="type-btn active" data-type="short_answer" onclick="setType(this)">Short Answer</button>
+          <button class="type-btn" data-type="mcq" onclick="setType(this)">MCQ</button>
+          <button class="type-btn" data-type="true_false" onclick="setType(this)">True/False</button>
+          <button class="type-btn" data-type="fill_in_blank" onclick="setType(this)">Fill in Blank</button>
+        </div>
+      </div>
+
+      <!-- MCQ options -->
+      <div id="mcq-box" class="hidden" style="margin-bottom:16px">
+        <label>MCQ Options (one per line)</label>
+        <textarea id="mcq-options" rows="3" placeholder="A) Option 1&#10;B) Option 2&#10;C) Option 3&#10;D) Option 4"></textarea>
+      </div>
+
+      <!-- Question text -->
+      <div style="margin-bottom:16px">
+        <label>Your Question</label>
+        <textarea id="question-input" rows="3" placeholder="Type or paste your homework question here..."></textarea>
+      </div>
+
+      <!-- Image upload -->
+      <div style="margin-bottom:16px">
+        <label>Upload Homework Sheet (optional)</label>
+        <div class="dropzone" id="dropzone">
+        <p>📎 Drag image here or click to upload</p>
+        <p class="sub">PNG, JPG, JPEG, GIF — max 16MB</p>
+        <input type="file" id="file-input" accept="image/*" style="display:none">
+        </div>
+        <div class="preview hidden" id="preview-box">
+          <img id="preview-img" src="">
+          <button class="remove" onclick="removeImage()">✕</button>
+        </div>
+      </div>
+
+      <!-- Solve button -->
+      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:16px"
+              onclick="solve()" id="solve-btn" disabled>
+        🔍 Solve
+      </button>
+    </div>
+
+    <!-- Answer Card -->
+    <div class="card hidden" id="answer-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin-bottom:0">Answer</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="copyAnswer()">📋 Copy</button>
+          <button class="btn btn-sm" onclick="clearAnswer()">✕</button>
+        </div>
+      </div>
+      <div class="answer-box" id="answer-box">
+        <div class="loading" id="loading-indicator">
+          <div class="spinner"></div>
+          <p>Solving your homework…</p>
+        </div>
+        <div id="answer-content"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    AI Homework Solver · Built with <a href="https://pollinations.ai" target="_blank">Pollinations AI</a>
+  </div>
+
+<script>
+let currentType = 'short_answer';
+let currentImageData = null;   // data-URL string for preview
+let currentImageB64 = null;    // base64 without data-URL prefix (sent to backend)
+let isLoading = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Set up drag and drop on the dropzone
+  const dz = document.getElementById('dropzone');
+  const fi = document.getElementById('file-input');
+  if (dz && fi) {
+    dz.addEventListener('click', function() { fi.click(); });
+    dz.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('drag'); });
+    dz.addEventListener('dragleave', function() { this.classList.remove('drag'); });
+    dz.addEventListener('drop', function(e) {
+      e.preventDefault(); this.classList.remove('drag');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    fi.addEventListener('change', function() {
+      if (this.files && this.files[0]) handleFile(this.files[0]);
+    });
+  }
+
+  // Enable solve button when question text exists
+  const qi = document.getElementById('question-input');
+  if (qi) {
+    qi.addEventListener('input', function() {
+      document.getElementById('solve-btn').disabled = !this.value.trim() && !currentImageB64;
+    });
+  }
+});
+
+function setType(btn) {
+  document.querySelectorAll('.type-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  currentType = btn.getAttribute('data-type');
+  const mb = document.getElementById('mcq-box');
+  mb.classList.toggle('hidden', currentType !== 'mcq');
+}
+
+function handleFile(file) {
+  if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
+  if (file.size > 16 * 1024 * 1024) { showToast('File too large (max 16MB)', 'error'); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    currentImageData = e.target.result; // data:image/png;base64,...
+
+    // Extract pure base64 (strip the data-URL prefix) for backend upload
+    const parts = e.target.result.split(',');
+    currentImageB64 = parts[1] || '';
+
+    document.getElementById('preview-img').src = currentImageData;
+    document.getElementById('preview-box').classList.remove('hidden');
+    document.getElementById('dropzone').classList.add('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage() {
+  currentImageData = null;
+  currentImageB64 = null;
+  document.getElementById('preview-box').classList.add('hidden');
+  document.getElementById('dropzone').classList.remove('hidden');
+  document.getElementById('file-input').value = '';
+}
+
+async function connectKey() {
+  const ki = document.getElementById('api-key-input');
+  const key = ki.value.trim();
+  const btn = document.getElementById('connect-btn');
+  if (!key) { showToast('Please enter your API key', 'error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Connecting…';
+
+  try {
+    const resp = await fetch('/api/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: key })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      showToast('Connected successfully!', 'success');
+      document.getElementById('connect-card').classList.add('hidden');
+      updateStatus(true);
+    } else {
+      showToast('Connection failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Connect';
+  }
+}
+
+function updateStatus(connected) {
+  const dot = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  if (connected) {
+    dot.classList.remove('free');
+    dot.classList.add('byop');
+    text.textContent = 'BYOP Connected — full access';
+  } else {
+    dot.classList.remove('byop');
+    dot.classList.add('free');
+    text.textContent = 'Free Tier — text only';
+  }
+}
+
+async function solve() {
+  const question = document.getElementById('question-input').value.trim();
+  if (!question && !currentImageB64) return;
+  if (isLoading) return;
+
+  isLoading = true;
+  const sb = document.getElementById('solve-btn');
+  sb.disabled = true;
+
+  const ac = document.getElementById('answer-card');
+  const acnt = document.getElementById('answer-content');
+  const ld = document.getElementById('loading-indicator');
+  ac.classList.remove('hidden');
+  acnt.classList.add('hidden');
+  ld.classList.remove('hidden');
+
+  try {
+    let fq = question;
+    if (currentType === 'mcq') {
+      const opts = document.getElementById('mcq-options').value.trim();
+      if (opts) fq = question + '\n\nOptions:\n' + opts;
+    }
+
+    const body = { question: fq, question_type: currentType };
+    if (currentImageB64) body.image_b64 = currentImageB64;
+
+    const resp = await fetch('/api/solve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      acnt.textContent = data.solution;
+      acnt.classList.remove('hidden');
+    } else {
+      acnt.textContent = (data.error || 'Unknown error');
+      acnt.classList.remove('hidden');
+    }
+  } catch (err) {
+    acnt.textContent = 'Network error: ' + err.message;
+    acnt.classList.remove('hidden');
+  } finally {
+    ld.classList.add('hidden');
+    sb.disabled = false;
+    isLoading = false;
+  }
+}
+
+function copyAnswer() {
+  const text = document.getElementById('answer-content').textContent;
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('Copied to clipboard!', 'success'))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showToast('Copied to clipboard!', 'success'); }
+  catch (e) { showToast('Copy failed', 'error'); }
+  document.body.removeChild(ta);
+}
+
+function clearAnswer() {
+  document.getElementById('answer-card').classList.add('hidden');
+  document.getElementById('answer-content').textContent = '';
+  document.getElementById('loading-indicator').classList.add('hidden');
+}
+
+function showToast(msg, type) {
+  document.querySelectorAll('.toast').forEach(function(t) { t.remove(); });
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 3000);
+}
+</script>
+</body>
+</html>

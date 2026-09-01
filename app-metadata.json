@@ -1,0 +1,43 @@
+{
+  "name": "AI Homework Solver",
+  "category": "learn",
+  "platform": "web",
+  "byop": true,
+  "description": "Solve homework problems with AI – free for text (anonymous tier), paid for advanced features including image-based questions and vision-capable models",
+  "url": "https://zizo.github.io/ai-homework-solver/",
+  "githubUsername": "zizo",
+  "version": "2.1.0",
+  "developer_markup_percent": 25,
+  "features": [
+    "Multiple question types: MCQ, short answer, true/false, fill in blank",
+    "Image upload capability for homework sheets (vision models)",
+    "Hybrid model: free anonymous tier for text, BYOP for advanced features",
+    "BYOP authentication via enter.pollinations.ai",
+    "Authenticated generation via gen.pollinations.ai",
+    "Settings dashboard for API key management and model selection",
+    "25% developer markup enabled"
+  ],
+  "requirements": [
+    "Python 3.9+",
+    "Flask",
+    "requests library",
+    "Pollinations BYOP key (optional, for advanced features)"
+  ],
+  "question_types_supported": [
+    "mcq",
+    "short_answer",
+    "true_false",
+    "fill_in_blank"
+  ],
+  "free_tier": {
+    "endpoint": "https://text.pollinations.ai/openai",
+    "model": "gpt-oss-20b",
+    "auth_required": false,
+    "image_support": false
+  },
+  "byop_tier": {
+    "endpoint": "https://gen.pollinations.ai/v1/chat/completions",
+    "models_endpoint": "https://gen.pollinations.ai/v1/models",
+    "image_support": true
+  }
+}

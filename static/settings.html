@@ -149,7 +149,10 @@ const APP_KEY = "pk_rTuZ5SRUSxvDiGR0";  // ← Your Pollinations App Key
 const AUTH_BASE = "https://enter.pollinations.ai";
 const GEN_MODELS_ENDPOINT = "https://gen.pollinations.ai/v1/models";
 const TOKEN_ENDPOINT = `${AUTH_BASE}/api/oauth/token`;
-const REDIRECT_URI = window.location.origin + "/ai-homework-solver/";
+// IMPORTANT: This redirect URI must EXACTLY match what's registered in the
+// Pollinations dashboard (enter.pollinations.ai → App Keys → your key → Redirect URIs).
+// GitHub Pages serves index.html at the root URL.
+const REDIRECT_URI = "https://zizoisu.github.io/ai-homework-solver/";
 
 // ─── PKCE Helpers ──────────────────────────────────────────────────────────
 function generatePKCE() {
@@ -253,6 +256,12 @@ async function handleOAuthCallback() {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params
+        }).catch(err => {
+            throw new Error(
+                'Network error during token exchange. ' +
+                'This may be due to a redirect URI mismatch — ensure your App Key at enter.pollinations.ai ' +
+                'is registered with the exact redirect URI: ' + REDIRECT_URI
+            );
         });
 
         if (!resp.ok) {

@@ -408,7 +408,7 @@ function showToast(msg, type) {
 // ─── App Key ───────────────────────────────────────────────────────────────
 const APP_KEY = "pk_rTuZ5SRUSxvDiGR0";
 const AUTH_BASE = "https://enter.pollinations.ai";
-const REDIRECT_URI = window.location.origin + "/ai-homework-solver/";
+const REDIRECT_URI = "https://zizoisu.github.io/ai-homework-solver/";
 
 // ─── PKCE Helpers ──────────────────────────────────────────────────────────
 function generatePKCE() {
@@ -450,6 +450,12 @@ async function handleOAuthCallback() {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params
+        }).catch(err => {
+            throw new Error(
+                'Network error during token exchange. ' +
+                'This may be due to a redirect URI mismatch — ensure your App Key at enter.pollinations.ai ' +
+                'is registered with the exact redirect URI: ' + REDIRECT_URI
+            );
         });
 
         if (!resp.ok) {
